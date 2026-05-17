@@ -19,24 +19,28 @@ st.markdown(f"<p style='text-align: center; font-size: 18px; color: gray;'>{NOME
 st.info("📲 **Dica:** Se estiver no celular, clique nas **setinhas ( >> )** no canto superior esquerdo para **alterar os valores** da simulação.")
 st.markdown("---")
 
-# --- BARRA LATERAL: ENTRADA DE DADOS ---
+# --- BARRA LATERAL: ENTRADA DE DADOS COM INCREMENTOS PERSONALIZADOS ---
 st.sidebar.header("1. Investimento Inicial")
-preco_planta = st.sidebar.number_input("Preço na Planta (R$)", value=269000.0, step=1000.0)
-custo_mobilia = st.sidebar.number_input("Investimento em Mobília (R$)", value=35000.0, step=500.0)
+# Incremento de 20.000,00
+preco_planta = st.sidebar.number_input("Preço na Planta (R$)", value=260000.0, step=20000.0)
+# Incremento de 5.000,00
+custo_mobilia = st.sidebar.number_input("Investimento em Mobília (R$)", value=35000.0, step=5000.0)
 perc_valorizacao = st.sidebar.slider("% Valorização Estimada (Obra)", 0, 100, 35)
 
 st.sidebar.header("2. Premissas de Locação")
-valor_diaria = st.sidebar.number_input("Valor da Diária (R$)", value=350.0, step=10.0)
+# Incremento de 50,00
+valor_diaria = st.sidebar.number_input("Valor da Diária (R$)", value=350.0, step=50.0)
 taxa_ocupacao = st.sidebar.slider("% Ocupação Mensal", 0, 100, 65)
 
 st.sidebar.header("3. Custos Mensais")
-iptu = st.sidebar.number_input("IPTU (R$)", value=70.0)
-wifi = st.sidebar.number_input("Wi-Fi (R$)", value=100.0)
-energia = st.sidebar.number_input("Energia (R$)", value=150.0)
-condominio = st.sidebar.number_input("Condomínio (R$)", value=300.0)
+# Todos os custos com incremento de 10,00
+iptu = st.sidebar.number_input("IPTU (R$)", value=70.0, step=10.0)
+wifi = st.sidebar.number_input("Wi-Fi (R$)", value=100.0, step=10.0)
+energia = st.sidebar.number_input("Energia (R$)", value=150.0, step=10.0)
+condominio = st.sidebar.number_input("Condomínio (R$)", value=300.0, step=10.0)
 taxa_adm_perc = st.sidebar.slider("% Taxa Administradora", 0, 30, 10)
 
-# --- LÓGICA DE CÁLCULO ---
+# --- LÓGICA DE CÁLCULO (MANTIDA IGUAL) ---
 valor_pos_obra = preco_planta * (1 + (perc_valorizacao / 100))
 lucro_capital = valor_pos_obra - preco_planta
 investimento_total = preco_planta + custo_mobilia
@@ -51,7 +55,7 @@ payback_tradicional = investimento_total / projecao_12_meses if projecao_12_mese
 investimento_restante = investimento_total - lucro_capital
 payback_real = (investimento_restante / projecao_12_meses if projecao_12_meses > 0 else 0) if investimento_restante > 0 else 0
 
-# --- EXIBIÇÃO ---
+# --- EXIBIÇÃO NO DASHBOARD ---
 
 # SEÇÃO 1: PATRIMÔNIO
 st.header("📈 1. Valorização de Patrimônio")
@@ -74,11 +78,9 @@ with o1:
     st.metric("Receita Bruta", f"R$ {formatar_br(receita_bruta)}")
     st.write(f"Ocupação: {taxa_ocupacao}%")
 with o2:
-    # Usando HTML para diminuir o tamanho
     st.markdown(f"<p style='font-size:14px; color:gray; margin-bottom:0;'>Custos Fixos</p><h4 style='margin-top:0;'>R$ {formatar_br(custos_fixos)}</h4>", unsafe_allow_html=True)
     st.caption("IPTU, Wi-Fi, Luz, Cond.")
 with o3:
-    # Usando HTML para diminuir o tamanho
     st.markdown(f"<p style='font-size:14px; color:gray; margin-bottom:0;'>Taxa Adm ({taxa_adm_perc}%)</p><h4 style='margin-top:0;'>R$ {formatar_br(valor_taxa_adm)}</h4>", unsafe_allow_html=True)
     st.caption("Sobre receita bruta")
 with o4:
