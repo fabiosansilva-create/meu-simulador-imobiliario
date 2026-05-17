@@ -2,75 +2,91 @@ import streamlit as st
 import urllib.parse
 
 # --- CONFIGURAÇÃO DO CONSULTOR ---
-# Note que adicionamos o 55 para o link funcionar corretamente
 TELEFONE_CONSULTOR = "5581982638903" 
 
-st.set_page_config(page_title="Simulador Imobiliário Pro", layout="wide")
+st.set_page_config(page_title="Simulador Imobiliário Profissional", layout="wide")
 
-# --- CABEÇALHO ---
-st.title("📊 Simulador de Rentabilidade Imobiliária")
-st.markdown("Calcule a valorização e a rentabilidade mensal do seu novo investimento.")
+st.title("🏨 Simulador de Rentabilidade Estimada")
+st.markdown("---")
 
-# --- BARRA LATERAL (ENTRADA DE DADOS) ---
-st.sidebar.header("Dados da Compra")
-preco_planta = st.sidebar.number_input("Preço na Planta (R$)", value=269000.0)
-perc_valorizacao = st.sidebar.slider("% Valorização na Obra", 0, 100, 35)
-custo_mobilia = st.sidebar.number_input("Investimento em Mobília (R$)", value=35000.0)
+# --- BARRA LATERAL: ENTRADA DE DADOS ---
+st.sidebar.header("1. Investimento Inicial")
+preco_planta = st.sidebar.number_input("Preço na Planta (R$)", value=269000.0, step=1000.0)
+custo_mobilia = st.sidebar.number_input("Investimento em Mobília (R$)", value=35000.0, step=500.0)
+perc_valorizacao = st.sidebar.slider("% Valorização Média Esperada", 0, 100, 35)
 
-st.sidebar.header("Premissas de Aluguel")
-valor_diaria = st.sidebar.number_input("Valor da Diária (R$)", value=350.0)
-taxa_ocupacao = st.sidebar.slider("% Ocupação Estimada", 0, 100, 65)
+st.sidebar.header("2. Premissas de Ocupação")
+valor_diaria = st.sidebar.number_input("Valor da Diária (R$)", value=350.0, step=10.0)
+taxa_ocupacao = st.sidebar.slider("% Ocupação Mensal", 0, 100, 65)
 
-# --- LÓGICA DE CÁLCULO ---
-# 1. Valorização de Capital
+st.sidebar.header("3. Custos Mensais (OpEx)")
+iptu = st.sidebar.number_input("IPTU (R$)", value=70.0)
+wifi = st.sidebar.number_input("Wi-Fi (R$)", value=100.0)
+energia = st.sidebar.number_input("Energia (R$)", value=150.0)
+condominio = st.sidebar.number_input("Condomínio (R$)", value=300.0)
+taxa_adm_perc = st.sidebar.slider("% Taxa Administradora", 0, 30, 10)
+
+# --- LÓGICA DE PROGRAMAÇÃO (CÁLCULOS FIÉIS À IMAGEM) ---
+
+# A. Valorização
 valor_pos_obra = preco_planta * (1 + (perc_valorizacao / 100))
-lucro_obra = valor_pos_obra - preco_planta
+lucro_capital = valor_pos_obra - preco_planta
 
-# 2. Investimento Total (CapEx)
+# B. Investimento Total
 investimento_total = preco_planta + custo_mobilia
 
-# 3. Operação Mensal (Receita e Custos fixos da sua planilha)
+# C. Receita
 receita_bruta = valor_diaria * 30 * (taxa_ocupacao / 100)
-# Custos baseados na sua planilha: IPTU(70) + Wi-Fi(100) + Energia(150) + Condomínio(300) + Adm(10%)
-taxa_adm = receita_bruta * 0.10
-total_custos = 70 + 100 + 150 + 300 + taxa_adm
 
-# 4. Rentabilidade Líquida
-lucro_liquido_mensal = receita_bruta - total_custos
-roi_mensal_perc = (lucro_liquido_mensal / investimento_total) * 100
-payback_anos = investimento_total / (lucro_liquido_mensal * 12) if lucro_liquido_mensal > 0 else 0
+# D. Custos Detalhados
+valor_taxa_adm = receita_bruta * (taxa_adm_perc / 100)
+total_custos_mensais = iptu + wifi + energia + condominio + valor_taxa_adm
 
-# --- EXIBIÇÃO DOS RESULTADOS ---
-st.header("📈 Projeção de Resultados")
+# E. Rentabilidade Final
+lucro_liquido_mensal = receita_bruta - total_custos_mensais
+rentabilidade_perc = (lucro_liquido_mensal / investimento_total) * 100
+projecao_12_meses = lucro_liquido_mensal * 12
+payback_anos = investimento_total / projecao_12_meses if projecao_12_meses > 0 else 0
 
+# --- EXIBIÇÃO DOS RESULTADOS (DASHBOARD) ---
+
+st.header("📈 Resumo do Investimento")
 col1, col2, col3 = st.columns(3)
 with col1:
-    st.metric("Valor Pós-Entrega", f"R$ {valor_pos_obra:,.2f}")
-    st.write(f"**Lucro na Obra:** R$ {lucro_obra:,.2f}")
+    st.metric("Investimento Total", f"R$ {investimento_total:,.2f}")
+    st.write(f"Imóvel: R$ {preco_planta:,.2f}")
+    st.write(f"Mobília: R$ {custo_mobilia:,.2f}")
 
 with col2:
-    st.metric("Lucro Líquido Mensal", f"R$ {lucro_liquido_mensal:,.2f}")
-    st.write(f"**ROI Mensal:** {roi_mensal_perc:.2f}%")
+    st.metric("Valor Pós-Obra", f"R$ {valor_pos_obra:,.2f}")
+    st.write(f"**Ganho:** R$ {lucro_capital:,.2f} ({perc_valorizacao}%)")
 
 with col3:
-    st.metric("Tempo de Retorno", f"{payback_anos:.2f} Anos")
-    st.write(f"**Renda Anual:** R$ {lucro_liquido_mensal * 12:,.2f}")
+    st.metric("Receita Bruta Mensal", f"R$ {receita_bruta:,.2f}")
+    st.write(f"Ocupação: {taxa_ocupacao}%")
 
 st.divider()
 
-# --- SEÇÃO DE FECHAMENTO (CALL TO ACTION) ---
-st.subheader("🚀 Gostou dos números?")
-st.write("Clique abaixo para receber a tabela completa e verificar as unidades disponíveis.")
+st.header("💰 Rentabilidade Líquida")
+r1, r2, r3, r4 = st.columns(4)
+r1.metric("Lucro Líquido", f"R$ {lucro_liquido_mensal:,.2f}")
+r2.metric("ROI Mensal", f"{rentabilidade_perc:.2f}%")
+r3.metric("Renda em 12 meses", f"R$ {projecao_12_meses:,.2f}")
+r4.metric("Payback (Anos)", f"{payback_anos:.2f}")
 
-# Preparação da mensagem do WhatsApp
-texto_whats = (
-    f"Olá! Usei seu Simulador e gostei dos números:\n\n"
-    f"📍 Imóvel Planta: R$ {preco_planta:,.2f}\n"
-    f"💰 Lucro Mensal: R$ {lucro_liquido_mensal:,.2f}\n"
-    f"📈 ROI: {roi_mensal_perc:.2f}% ao mês.\n\n"
-    f"Pode me enviar mais detalhes?"
+st.divider()
+
+# --- BOTÃO DO WHATSAPP COM RESUMO COMPLETO ---
+st.subheader("📲 Gostou desta projeção?")
+st.write("Fale agora com o consultor para receber os detalhes desta unidade.")
+
+msg_whats = (
+    f"Olá! Usei o Simulador e quero detalhes desta unidade:\n\n"
+    f"💰 Preço na Planta: R$ {preco_planta:,.2f}\n"
+    f"🛋️ Mobília: R$ {custo_mobilia:,.2f}\n"
+    f"📊 ROI: {rentabilidade_perc:.2f}% ao mês\n"
+    f"💵 Lucro Líquido: R$ {lucro_liquido_mensal:,.2f}/mês\n"
+    f"⏳ Payback: {payback_anos:.2f} anos"
 )
-mensagem_url = urllib.parse.quote(texto_whats)
-link_final = f"https://wa.me/{TELEFONE_CONSULTOR}?text={mensagem_url}"
-
-st.link_button("🟢 Falar com Consultor no WhatsApp", link_final, type="primary")
+msg_link = urllib.parse.quote(msg_whats)
+st.link_button("🟢 Falar com Consultor no WhatsApp", f"https://wa.me/{TELEFONE_CONSULTOR}?text={msg_link}", type="primary")
