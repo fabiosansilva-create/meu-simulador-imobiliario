@@ -1,76 +1,76 @@
 import streamlit as st
+import urllib.parse
 
-# Configuração da página para aproveitar melhor o espaço
-st.set_page_config(page_title="Simulador de Investimento Pro", layout="wide")
+# --- CONFIGURAÇÃO DO CONSULTOR ---
+# Note que adicionamos o 55 para o link funcionar corretamente
+TELEFONE_CONSULTOR = "5581982638903" 
 
-st.title("🏨 Simulador de Rentabilidade Imobiliária Avançado")
-st.markdown("Baseado na sua planilha de projeção de lucros.")
+st.set_page_config(page_title="Simulador Imobiliário Pro", layout="wide")
 
-# --- BARRA LATERAL: ENTRADA DE DADOS ---
-st.sidebar.header("1. Aquisição e Valorização")
+# --- CABEÇALHO ---
+st.title("📊 Simulador de Rentabilidade Imobiliária")
+st.markdown("Calcule a valorização e a rentabilidade mensal do seu novo investimento.")
+
+# --- BARRA LATERAL (ENTRADA DE DADOS) ---
+st.sidebar.header("Dados da Compra")
 preco_planta = st.sidebar.number_input("Preço na Planta (R$)", value=269000.0)
-perc_valorizacao = st.sidebar.slider("% Valorização Estimada", 0, 100, 35)
+perc_valorizacao = st.sidebar.slider("% Valorização na Obra", 0, 100, 35)
+custo_mobilia = st.sidebar.number_input("Investimento em Mobília (R$)", value=35000.0)
 
-st.sidebar.header("2. Investimento Inicial (Setup)")
-custo_mobilia = st.sidebar.number_input("Custo de Mobília (R$)", value=35000.0)
-
-st.sidebar.header("3. Premissas de Locação")
+st.sidebar.header("Premissas de Aluguel")
 valor_diaria = st.sidebar.number_input("Valor da Diária (R$)", value=350.0)
-taxa_ocupacao = st.sidebar.slider("% Ocupação Mensal", 0, 100, 65)
+taxa_ocupacao = st.sidebar.slider("% Ocupação Estimada", 0, 100, 65)
 
-st.sidebar.header("4. Custos Mensais (OpEx)")
-condominio = st.sidebar.number_input("Condomínio (R$)", value=300.0)
-iptu = st.sidebar.number_input("IPTU Mensal (R$)", value=70.0)
-energia = st.sidebar.number_input("Energia (R$)", value=150.0)
-internet = st.sidebar.number_input("Wi-Fi (R$)", value=100.0)
-taxa_adm_perc = st.sidebar.slider("% Taxa Administradora", 0, 30, 10)
-
-# --- LÓGICA DE PROGRAMAÇÃO (CÁLCULOS) ---
-
-# A. Valorização
+# --- LÓGICA DE CÁLCULO ---
+# 1. Valorização de Capital
 valor_pos_obra = preco_planta * (1 + (perc_valorizacao / 100))
-lucro_valorizacao = valor_pos_obra - preco_planta
+lucro_obra = valor_pos_obra - preco_planta
 
-# B. Investimento Total
+# 2. Investimento Total (CapEx)
 investimento_total = preco_planta + custo_mobilia
 
-# C. Receita de Locação
+# 3. Operação Mensal (Receita e Custos fixos da sua planilha)
 receita_bruta = valor_diaria * 30 * (taxa_ocupacao / 100)
+# Custos baseados na sua planilha: IPTU(70) + Wi-Fi(100) + Energia(150) + Condomínio(300) + Adm(10%)
+taxa_adm = receita_bruta * 0.10
+total_custos = 70 + 100 + 150 + 300 + taxa_adm
 
-# D. Custos Variáveis e Fixos
-custo_adm = receita_bruta * (taxa_adm_perc / 100)
-total_custos = condominio + iptu + energia + internet + custo_adm
-
-# E. Rentabilidade Final
+# 4. Rentabilidade Líquida
 lucro_liquido_mensal = receita_bruta - total_custos
-rentabilidade_mensal_perc = (lucro_liquido_mensal / investimento_total) * 100
+roi_mensal_perc = (lucro_liquido_mensal / investimento_total) * 100
 payback_anos = investimento_total / (lucro_liquido_mensal * 12) if lucro_liquido_mensal > 0 else 0
 
-# --- EXIBIÇÃO NA TELA ---
+# --- EXIBIÇÃO DOS RESULTADOS ---
+st.header("📈 Projeção de Resultados")
 
-# Seção 1: Patrimônio
-st.header("📈 Valorização de Patrimônio")
-c1, c2, c3 = st.columns(3)
-c1.metric("Preço na Planta", f"R$ {preco_planta:,.2f}")
-c2.metric("Valorização Média", f"R$ {lucro_valorizacao:,.2f}", f"{perc_valorizacao}%")
-c3.metric("Valor Pós-Entrega", f"R$ {valor_pos_obra:,.2f}")
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.metric("Valor Pós-Entrega", f"R$ {valor_pos_obra:,.2f}")
+    st.write(f"**Lucro na Obra:** R$ {lucro_obra:,.2f}")
 
-st.divider()
+with col2:
+    st.metric("Lucro Líquido Mensal", f"R$ {lucro_liquido_mensal:,.2f}")
+    st.write(f"**ROI Mensal:** {roi_mensal_perc:.2f}%")
 
-# Seção 2: Rentabilidade de Aluguel
-st.header("💰 Rentabilidade Líquida (Mensal)")
-r1, r2, r3, r4 = st.columns(4)
-r1.metric("Receita Bruta", f"R$ {receita_bruta:,.2f}")
-r2.metric("Custos Operais", f"R$ {total_custos:,.2f}")
-r3.metric("Lucro Líquido", f"R$ {lucro_liquido_mensal:,.2f}")
-r4.metric("ROI Mensal", f"{rentabilidade_mensal_perc:.2f}%")
+with col3:
+    st.metric("Tempo de Retorno", f"{payback_anos:.2f} Anos")
+    st.write(f"**Renda Anual:** R$ {lucro_liquido_mensal * 12:,.2f}")
 
 st.divider()
 
-# Seção 3: Payback e Retorno
-st.header("⏳ Tempo de Retorno")
-p1, p2 = st.columns(2)
-p1.metric("Projeção 12 meses", f"R$ {lucro_liquido_mensal * 12:,.2f}")
-p2.metric("Imóvel Pago em (Anos)", f"{payback_anos:.2f} Anos")
+# --- SEÇÃO DE FECHAMENTO (CALL TO ACTION) ---
+st.subheader("🚀 Gostou dos números?")
+st.write("Clique abaixo para receber a tabela completa e verificar as unidades disponíveis.")
 
-st.info(f"O investimento total foi de **R$ {investimento_total:,.2f}** (Imóvel + Mobília).")
+# Preparação da mensagem do WhatsApp
+texto_whats = (
+    f"Olá! Usei seu Simulador e gostei dos números:\n\n"
+    f"📍 Imóvel Planta: R$ {preco_planta:,.2f}\n"
+    f"💰 Lucro Mensal: R$ {lucro_liquido_mensal:,.2f}\n"
+    f"📈 ROI: {roi_mensal_perc:.2f}% ao mês.\n\n"
+    f"Pode me enviar mais detalhes?"
+)
+mensagem_url = urllib.parse.quote(texto_whats)
+link_final = f"https://wa.me/{TELEFONE_CONSULTOR}?text={mensagem_url}"
+
+st.link_button("🟢 Falar com Consultor no WhatsApp", link_final, type="primary")
