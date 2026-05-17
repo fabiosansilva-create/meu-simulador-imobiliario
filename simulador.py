@@ -4,6 +4,7 @@ import urllib.parse
 # --- CONFIGURAÇÃO DO CONSULTOR ---
 TELEFONE_CONSULTOR = "5581982638903" 
 NOME_CONSULTOR = "Fábio - Consultor de investimentos imobiliários"
+SITE_CONSULTOR = "https://www.consultorfabiope.com"
 
 # --- FUNÇÃO DE FORMATAÇÃO BRASILEIRA ---
 def formatar_br(valor):
@@ -39,18 +40,13 @@ taxa_adm_perc = st.sidebar.slider("% Taxa Administradora", 0, 30, 10)
 valor_pos_obra = preco_planta * (1 + (perc_valorizacao / 100))
 lucro_capital = valor_pos_obra - preco_planta
 investimento_total = preco_planta + custo_mobilia
-
-# Operação Mensal
 receita_bruta = valor_diaria * 30 * (taxa_ocupacao / 100)
 custos_fixos = iptu + wifi + energia + condominio
 valor_taxa_adm = receita_bruta * (taxa_adm_perc / 100)
 total_custos_mensais = custos_fixos + valor_taxa_adm
-
 lucro_liquido_mensal = receita_bruta - total_custos_mensais
 rentabilidade_perc = (lucro_liquido_mensal / investimento_total) * 100
 projecao_12_meses = lucro_liquido_mensal * 12
-
-# Paybacks
 payback_tradicional = investimento_total / projecao_12_meses if projecao_12_meses > 0 else 0
 investimento_restante = investimento_total - lucro_capital
 payback_real = (investimento_restante / projecao_12_meses if projecao_12_meses > 0 else 0) if investimento_restante > 0 else 0
@@ -71,21 +67,23 @@ with c3:
 
 st.divider()
 
-# SEÇÃO 2: OPERAÇÃO (AGORA COM 4 COLUNAS)
+# SEÇÃO 2: OPERAÇÃO (CUSTOS COM FONTE MENOR)
 st.header("💰 2. Operação Mensal e Custos")
 o1, o2, o3, o4 = st.columns(4)
 with o1:
     st.metric("Receita Bruta", f"R$ {formatar_br(receita_bruta)}")
     st.write(f"Ocupação: {taxa_ocupacao}%")
 with o2:
-    st.metric("Custos Fixos", f"R$ {formatar_br(custos_fixos)}")
+    # Usando HTML para diminuir o tamanho
+    st.markdown(f"<p style='font-size:14px; color:gray; margin-bottom:0;'>Custos Fixos</p><h4 style='margin-top:0;'>R$ {formatar_br(custos_fixos)}</h4>", unsafe_allow_html=True)
     st.caption("IPTU, Wi-Fi, Luz, Cond.")
 with o3:
-    st.metric(f"Taxa Adm ({taxa_adm_perc}%)", f"R$ {formatar_br(valor_taxa_adm)}")
+    # Usando HTML para diminuir o tamanho
+    st.markdown(f"<p style='font-size:14px; color:gray; margin-bottom:0;'>Taxa Adm ({taxa_adm_perc}%)</p><h4 style='margin-top:0;'>R$ {formatar_br(valor_taxa_adm)}</h4>", unsafe_allow_html=True)
     st.caption("Sobre receita bruta")
 with o4:
     st.metric("**Lucro Líquido Mensal**", f"R$ {formatar_br(lucro_liquido_mensal)}")
-    st.write(f"Rentabilidade: {rentabilidade_perc:.2f}% ao mês".replace(".", ","))
+    st.write(f"Rentabilidade: **{rentabilidade_perc:.2f}%** ao mês".replace(".", ","))
 
 st.divider()
 
@@ -103,14 +101,20 @@ with p3:
 
 st.divider()
 
-# --- BOTÃO DO WHATSAPP ---
-st.subheader(f"🚀 Quer saber mais com o {NOME_CONSULTOR.split(' - ')[0]}?")
-msg_whats = (
-    f"Olá! Usei o Simulador do Fábio e gostei dos resultados:\n\n"
-    f"🏙️ Valor pós-obra: R$ {formatar_br(valor_pos_obra)}\n"
-    f"💵 Lucro líquido: R$ {formatar_br(lucro_liquido_mensal)}/mês\n"
-    f"⏳ Payback Real: {payback_real:.1f} anos\n\n"
-    f"Pode me passar mais informações?"
-)
-msg_link = urllib.parse.quote(msg_whats)
-st.link_button(f"🟢 Falar com o Consultor Fábio no WhatsApp", f"https://wa.me/{TELEFONE_CONSULTOR}?text={msg_link}", type="primary")
+# --- SEÇÃO FINAL: CONTATO E SITE ---
+st.subheader(f"🚀 Quer avançar com o {NOME_CONSULTOR.split(' - ')[0]}?")
+btn_col1, btn_col2 = st.columns(2)
+
+with btn_col1:
+    msg_whats = (
+        f"Olá! Usei o Simulador do Fábio e gostei dos resultados:\n\n"
+        f"🏙️ Valor pós-obra: R$ {formatar_br(valor_pos_obra)}\n"
+        f"💵 Lucro líquido: R$ {formatar_br(lucro_liquido_mensal)}/mês\n"
+        f"⏳ Payback Real: {payback_real:.1f} anos\n\n"
+        f"Pode me passar mais informações?"
+    )
+    msg_link = urllib.parse.quote(msg_whats)
+    st.link_button(f"🟢 Falar no WhatsApp", f"https://wa.me/{TELEFONE_CONSULTOR}?text={msg_link}", type="primary", use_container_width=True)
+
+with btn_col2:
+    st.link_button("🌐 Visitar meu Site", SITE_CONSULTOR, use_container_width=True)
