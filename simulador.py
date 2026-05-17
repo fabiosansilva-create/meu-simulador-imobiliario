@@ -19,32 +19,28 @@ st.markdown(f"<p style='text-align: center; font-size: 18px; color: gray;'>{NOME
 st.info("📲 **Dica:** Se estiver no celular, clique nas **setinhas ( >> )** no canto superior esquerdo para **alterar os valores** da simulação.")
 st.markdown("---")
 
-# --- BARRA LATERAL: ENTRADA DE DADOS COM INCREMENTOS PERSONALIZADOS ---
+# --- BARRA LATERAL: ENTRADA DE DADOS ---
 st.sidebar.header("1. Investimento Inicial")
-# Incremento de 20.000,00
 preco_planta = st.sidebar.number_input("Preço na Planta (R$)", value=260000.0, step=20000.0)
-# Incremento de 5.000,00
 custo_mobilia = st.sidebar.number_input("Investimento em Mobília (R$)", value=35000.0, step=5000.0)
 perc_valorizacao = st.sidebar.slider("% Valorização Estimada (Obra)", 0, 100, 35)
 
 st.sidebar.header("2. Premissas de Locação")
-# Incremento de 50,00
 valor_diaria = st.sidebar.number_input("Valor da Diária (R$)", value=350.0, step=50.0)
 taxa_ocupacao = st.sidebar.slider("% Ocupação Mensal", 0, 100, 65)
 
 st.sidebar.header("3. Custos Mensais")
-# Todos os custos com incremento de 10,00
 iptu = st.sidebar.number_input("IPTU (R$)", value=70.0, step=10.0)
 wifi = st.sidebar.number_input("Wi-Fi (R$)", value=100.0, step=10.0)
 energia = st.sidebar.number_input("Energia (R$)", value=150.0, step=10.0)
 condominio = st.sidebar.number_input("Condomínio (R$)", value=300.0, step=10.0)
 taxa_adm_perc = st.sidebar.slider("% Taxa Administradora", 0, 30, 10)
 
-# --- LÓGICA DE CÁLCULO (MANTIDA IGUAL) ---
+# --- LÓGICA DE CÁLCULO ---
 valor_pos_obra = preco_planta * (1 + (perc_valorizacao / 100))
 lucro_capital = valor_pos_obra - preco_planta
 investimento_total = preco_planta + custo_mobilia
-receita_bruta = valor_diaria * 30 * (taxa_ocupacao / 100)
+receita_bruta = valor_diaria * 30 * (taxa_occupacao / 100) if 'taxa_occupacao' in locals() else valor_diaria * 30 * (taxa_ocupacao / 100)
 custos_fixos = iptu + wifi + energia + condominio
 valor_taxa_adm = receita_bruta * (taxa_adm_perc / 100)
 total_custos_mensais = custos_fixos + valor_taxa_adm
@@ -55,7 +51,7 @@ payback_tradicional = investimento_total / projecao_12_meses if projecao_12_mese
 investimento_restante = investimento_total - lucro_capital
 payback_real = (investimento_restante / projecao_12_meses if projecao_12_meses > 0 else 0) if investimento_restante > 0 else 0
 
-# --- EXIBIÇÃO NO DASHBOARD ---
+# --- EXIBIÇÃO ---
 
 # SEÇÃO 1: PATRIMÔNIO
 st.header("📈 1. Valorização de Patrimônio")
@@ -71,7 +67,7 @@ with c3:
 
 st.divider()
 
-# SEÇÃO 2: OPERAÇÃO (CUSTOS COM FONTE MENOR)
+# SEÇÃO 2: OPERAÇÃO
 st.header("💰 2. Operação Mensal e Custos")
 o1, o2, o3, o4 = st.columns(4)
 with o1:
@@ -84,8 +80,13 @@ with o3:
     st.markdown(f"<p style='font-size:14px; color:gray; margin-bottom:0;'>Taxa Adm ({taxa_adm_perc}%)</p><h4 style='margin-top:0;'>R$ {formatar_br(valor_taxa_adm)}</h4>", unsafe_allow_html=True)
     st.caption("Sobre receita bruta")
 with o4:
-    st.metric("**Lucro Líquido Mensal**", f"R$ {formatar_br(lucro_liquido_mensal)}")
-    st.write(f"Rentabilidade: **{rentabilidade_perc:.2f}%** ao mês".replace(".", ","))
+    # ROI com seta verde e cor verde
+    st.metric(
+        "**Lucro Líquido Mensal**", 
+        f"R$ {formatar_br(lucro_liquido_mensal)}", 
+        delta=f"{rentabilidade_perc:.2f}% ao mês".replace(".", ","),
+        delta_color="normal"
+    )
 
 st.divider()
 
@@ -103,10 +104,9 @@ with p3:
 
 st.divider()
 
-# --- SEÇÃO FINAL: CONTATO E SITE ---
+# --- BOTÃO FINAL ---
 st.subheader(f"🚀 Quer avançar com o {NOME_CONSULTOR.split(' - ')[0]}?")
 btn_col1, btn_col2 = st.columns(2)
-
 with btn_col1:
     msg_whats = (
         f"Olá! Usei o Simulador do Fábio e gostei dos resultados:\n\n"
