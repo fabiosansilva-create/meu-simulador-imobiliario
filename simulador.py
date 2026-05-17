@@ -12,9 +12,12 @@ def formatar_br(valor):
 st.set_page_config(page_title="Simulador Imobiliário - Fábio", layout="wide")
 
 # --- CABEÇALHO PERSONALIZADO ---
-# Usamos H2 para um título um pouco menor e centralizado
 st.markdown(f"<h2 style='text-align: center;'>Simulador de Rentabilidade Imobiliária</h2>", unsafe_allow_html=True)
 st.markdown(f"<p style='text-align: center; font-size: 18px; color: gray;'>{NOME_CONSULTOR}</p>", unsafe_allow_html=True)
+
+# --- INSTRUÇÃO PARA MOBILE (NOVIDADE) ---
+st.info("📲 **Dica:** Se estiver no celular, clique nas **setinhas ( >> )** no canto superior esquerdo para **alterar os valores** da simulação.")
+
 st.markdown("---")
 
 # --- BARRA LATERAL: ENTRADA DE DADOS ---
@@ -58,10 +61,8 @@ with c1:
     st.caption("Imóvel + Mobília")
 with c2:
     st.metric("Valor na Entrega", f"R$ {formatar_br(valor_pos_obra)}")
-    # Aplicando cor verde e negrito conforme solicitado
     st.markdown(f":green[**Aumento do patrimônio bruto**]: R$ {formatar_br(lucro_capital)}")
 with c3:
-    # ROI com setinha verde usando o parâmetro 'delta'
     st.metric("ROI de Valorização", f"{perc_valorizacao}%", delta=f"{perc_valorizacao}%", delta_color="normal")
 
 st.divider()
@@ -76,7 +77,6 @@ with o2:
     st.metric("Total Custos", f"R$ {formatar_br(total_custos_mensais)}")
     st.caption(f"Fixos + Taxa Adm ({taxa_adm_perc}%)")
 with o3:
-    # Lucro Líquido em Negrito
     st.metric("**Lucro Líquido Mensal**", f"R$ {formatar_br(lucro_liquido_mensal)}")
     st.write(f"Rentabilidade: {rentabilidade_perc:.2f}% ao mês".replace(".", ","))
 
@@ -92,13 +92,12 @@ with p2:
 with p3:
     dif = payback_tradicional - payback_real
     st.metric("Payback Real", f"{payback_real:.1f} Anos", delta=f"-{dif:.1f} Anos", delta_color="normal")
-    # Considerando valorização em negrito
     st.write("**Considerando valorização + aluguel**")
 
 st.divider()
 
 # --- BOTÃO DO WHATSAPP ---
-st.subheader("🚀 Quer saber mais sobre estas unidades?")
+st.subheader(f"🚀 Quer saber mais com o {NOME_CONSULTOR.split(' - ')[0]}?")
 msg_whats = (
     f"Olá! Usei o Simulador do Fábio e gostei dos resultados:\n\n"
     f"🏙️ Valor pós-obra: R$ {formatar_br(valor_pos_obra)}\n"
@@ -107,4 +106,4 @@ msg_whats = (
     f"Pode me passar mais informações?"
 )
 msg_link = urllib.parse.quote(msg_whats)
-st.link_button(f"🟢 Falar com {NOME_CONSULTOR}", f"https://wa.me/{TELEFONE_CONSULTOR}?text={msg_link}", type="primary")
+st.link_button(f"🟢 Falar com o Consultor Fábio no WhatsApp", f"https://wa.me/{TELEFONE_CONSULTOR}?text={msg_link}", type="primary")
