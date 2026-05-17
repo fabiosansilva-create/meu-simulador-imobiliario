@@ -15,9 +15,7 @@ st.set_page_config(page_title="Simulador Imobiliário - Fábio", layout="wide")
 st.markdown(f"<h2 style='text-align: center;'>Simulador de Rentabilidade Imobiliária</h2>", unsafe_allow_html=True)
 st.markdown(f"<p style='text-align: center; font-size: 18px; color: gray;'>{NOME_CONSULTOR}</p>", unsafe_allow_html=True)
 
-# --- INSTRUÇÃO PARA MOBILE (NOVIDADE) ---
 st.info("📲 **Dica:** Se estiver no celular, clique nas **setinhas ( >> )** no canto superior esquerdo para **alterar os valores** da simulação.")
-
 st.markdown("---")
 
 # --- BARRA LATERAL: ENTRADA DE DADOS ---
@@ -41,17 +39,23 @@ taxa_adm_perc = st.sidebar.slider("% Taxa Administradora", 0, 30, 10)
 valor_pos_obra = preco_planta * (1 + (perc_valorizacao / 100))
 lucro_capital = valor_pos_obra - preco_planta
 investimento_total = preco_planta + custo_mobilia
+
+# Operação Mensal
 receita_bruta = valor_diaria * 30 * (taxa_ocupacao / 100)
+custos_fixos = iptu + wifi + energia + condominio
 valor_taxa_adm = receita_bruta * (taxa_adm_perc / 100)
-total_custos_mensais = iptu + wifi + energia + condominio + valor_taxa_adm
+total_custos_mensais = custos_fixos + valor_taxa_adm
+
 lucro_liquido_mensal = receita_bruta - total_custos_mensais
 rentabilidade_perc = (lucro_liquido_mensal / investimento_total) * 100
 projecao_12_meses = lucro_liquido_mensal * 12
+
+# Paybacks
 payback_tradicional = investimento_total / projecao_12_meses if projecao_12_meses > 0 else 0
 investimento_restante = investimento_total - lucro_capital
 payback_real = (investimento_restante / projecao_12_meses if projecao_12_meses > 0 else 0) if investimento_restante > 0 else 0
 
-# --- EXIBIÇÃO NO DASHBOARD ---
+# --- EXIBIÇÃO ---
 
 # SEÇÃO 1: PATRIMÔNIO
 st.header("📈 1. Valorização de Patrimônio")
@@ -67,16 +71,19 @@ with c3:
 
 st.divider()
 
-# SEÇÃO 2: OPERAÇÃO MENSAL
+# SEÇÃO 2: OPERAÇÃO (AGORA COM 4 COLUNAS)
 st.header("💰 2. Operação Mensal e Custos")
-o1, o2, o3 = st.columns(3)
+o1, o2, o3, o4 = st.columns(4)
 with o1:
     st.metric("Receita Bruta", f"R$ {formatar_br(receita_bruta)}")
-    st.write(f"Diária: R$ {formatar_br(valor_diaria)} | Ocupação: {taxa_ocupacao}%")
+    st.write(f"Ocupação: {taxa_ocupacao}%")
 with o2:
-    st.metric("Total Custos", f"R$ {formatar_br(total_custos_mensais)}")
-    st.caption(f"Fixos + Taxa Adm ({taxa_adm_perc}%)")
+    st.metric("Custos Fixos", f"R$ {formatar_br(custos_fixos)}")
+    st.caption("IPTU, Wi-Fi, Luz, Cond.")
 with o3:
+    st.metric(f"Taxa Adm ({taxa_adm_perc}%)", f"R$ {formatar_br(valor_taxa_adm)}")
+    st.caption("Sobre receita bruta")
+with o4:
     st.metric("**Lucro Líquido Mensal**", f"R$ {formatar_br(lucro_liquido_mensal)}")
     st.write(f"Rentabilidade: {rentabilidade_perc:.2f}% ao mês".replace(".", ","))
 
